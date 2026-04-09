@@ -19,8 +19,3 @@ Route::get('/Logout', [UserController::class, 'Logout'])->middleware('auth:sanct
 Route::get('/verify/{id}/{hash}', [UserController::class, 'Verify'])
     ->name('verification.verify');
     
-Route::post('/email/resend', [UserController::class, 'Resend'])
-    ->middleware(['auth:sanctum', 'throttle:4,1'])
-    ->name('verification.send');
-
-Route::post('/password/forget',[UserController::class,'Reset_Password']);
