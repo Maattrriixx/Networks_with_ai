@@ -19,3 +19,5 @@ Route::get('/Logout', [UserController::class, 'Logout'])->middleware('auth:sanct
 Route::get('/verify/{id}/{hash}', [UserController::class, 'Verify'])
     ->name('verification.verify');
     
+Route::post('/Forget_Password', [UserController::class, 'Forget_Password']);
+Route::post('/New_Password', [UserController::class, 'New_Password']);
