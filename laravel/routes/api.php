@@ -21,3 +21,6 @@ Route::get('/verify/{id}/{hash}', [UserController::class, 'Verify'])
     
 Route::post('/Forget_Password', [UserController::class, 'Forget_Password']);
 Route::post('/New_Password', [UserController::class, 'New_Password']);
+
+
+Route::put('/Change_Name', [UserController::class, 'Change_Name'])->middleware('auth:sanctum');
