@@ -13,7 +13,7 @@ Route::get('All_Users', [UserController::class, 'Get_All_Users'])->middleware('a
 
 
 Route::post('/Register', [UserController::class, 'Register']);
-Route::post('/Login', [UserController::class, 'Login']);
+Route::post('/Login', [UserController::class, 'Login'])->middleware('throttle:5,10');
 Route::get('/Logout', [UserController::class, 'Logout'])->middleware('auth:sanctum');
 
 Route::get('/verify/{id}/{hash}', [UserController::class, 'Verify'])
@@ -24,4 +24,4 @@ Route::post('/New_Password', [UserController::class, 'New_Password']);
 
 
 Route::put('/Change_Name', [UserController::class, 'Change_Name'])->middleware('auth:sanctum');
-Route::get('/Delete_Account', [UserController::class, 'Delete_Account'])->middleware('auth:sanctum');
+Route::delete('/Delete_Account', [UserController::class, 'Delete_Account'])->middleware(['auth:sanctum','throttle:5,30']);

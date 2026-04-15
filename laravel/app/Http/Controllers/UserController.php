@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangeNameRequest;
+use App\Http\Requests\DeleteAccountRequest;
 use App\Http\Requests\ForgetPasswordRequest;
 use App\Http\Requests\NewPasswordRequest;
 use App\Http\Requests\RegisterRequest;
@@ -56,7 +57,7 @@ class UserController extends Controller
     }
     public function Logout(Request $req)
     {
-        $req->user()->currentAccessToken()->delete;
+        $req->user()->currentAccessToken()->delete();
         return response()->json([
             'message' => 'Logged out successfully',
         ]);
@@ -110,7 +111,7 @@ class UserController extends Controller
             'status' => true,
             'message' => 'Reset link sent successfully',
             'reset_link' => $resetLink,
-        ]);
+        ], 200);
     }
     public function New_Password(ResetPasswordRequest $req)
     {
@@ -167,7 +168,7 @@ class UserController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Password reset successfully',
-        ]);
+        ], 200);
     }
     public function Change_Name(ChangeNameRequest $req)
     {
@@ -182,11 +183,23 @@ class UserController extends Controller
             200,
         );
     }
-    Public function Delete_Account(Request $req){
-        $user=$req->user();
+    public function Delete_Account(DeleteAccountRequest $req)
+    {
+        $user = $req->user();
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found',
+            ], 404);
+        }
+        if (!Hash::check($req->password, $user->password)) {
+            return response()->json([
+                'message' => 'Incorrect password',
+            ], 401);
+        }
+        $user->tokens()->delete();
         $user->delete();
         return response()->json([
-            'message'=>'Account deleted successfully',
-        ]);
+            'message' => 'Account deleted successfully',
+        ], 200);
     }
 }
