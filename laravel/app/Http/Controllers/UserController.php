@@ -182,4 +182,11 @@ class UserController extends Controller
             200,
         );
     }
+    Public function Delete_Account(Request $req){
+        $user=$req->user();
+        $user->delete();
+        return response()->json([
+            'message'=>'Account deleted successfully',
+        ]);
+    }
 }
