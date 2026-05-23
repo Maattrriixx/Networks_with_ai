@@ -1,6 +1,8 @@
-@foreach ($icon as $i )
+@foreach ( $s as $i )
  
-        <img src="{{ asset($i->icon) }}" alt="{{ $i->name }}">
+        <img src="{{asset($i->thumbnail) }}" alt="{{ $i->name }}">
+        <br><br>
+        <hr>
         
 
 @endforeach

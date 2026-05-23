@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\IconController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoomsController;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,3 +31,29 @@ Route::put('/Change_Name', [UserController::class, 'Change_Name'])->middleware('
 Route::delete('/Delete_Account', [UserController::class, 'Delete_Account'])->middleware(['auth:sanctum','throttle:5,30']);
 
 Route::get('/Display_Icon',[IconController::class,'Display_Icon'])->middleware('auth:sanctum');
+
+
+
+///////////////////project
+///////////////////project
+///////////////////project
+///////////////////project
+Route::get('/Get_User_Projects', [ProjectController::class, 'GetUserProjects'])->middleware('auth:sanctum');
+Route::get('/Get_All_User_Projects', [ProjectController::class, 'GetAllUserProjects'])->middleware('auth:sanctum');
+
+
+Route::post('/create_project',[ProjectController::class,'StoreProject'])->middleware('auth:sanctum');
+Route::post('/projects/{project}/analyze', [ProjectController::class, 'analyzeProject'])->middleware('auth:sanctum');
+Route::get('/projects', [ProjectController::class, 'GetUserProjects'])->middleware('auth:sanctum');
+Route::get('/projects/{project}/status', function( Project $project) {
+    return response()->json(['status' => $project->status]);
+})->middleware('auth:sanctum');
+
+
+
+////////////////////////////room
+////////////////////////////room
+////////////////////////////room
+////////////////////////////room
+Route::get('/projects/{project}/rooms', [RoomsController::class, 'getRooms'])->middleware('auth:sanctum');
+Route::patch('/rooms/{room}/type', [RoomsController::class, 'updateType'])->middleware('auth:sanctum');

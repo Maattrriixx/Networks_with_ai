@@ -1,0 +1,89 @@
+# إنشاء بيئة افتراضية (اختياري لكن ينصح به)
+python -m venv venv
+
+# تفعيل البيئة (Windows)
+venv\Scripts\activate
+# أو (Mac/Linux)
+source venv/bin/activate
+
+# تثبيت المكتبات
+pip install -r requirements.txt
+
+# تشغيل السيرفر
+uvicorn api:app --host 0.0.0.0 --port 8000
+
+
+
+
+
+
+
+
+
+
+
+
+
+use Illuminate\Support\Facades\Http;
+
+public function analyzeRoom(Request $request)
+{
+    $request->validate([
+        'image' => 'required|image|max:10240'
+    ]);
+
+    $response = Http::attach(
+        'file',                          // اسم الحقل المتوقع في FastAPI
+        file_get_contents($request->file('image')->getRealPath()),
+        $request->file('image')->getClientOriginalName()
+    )->post('http://localhost:8000/analyze');   // نفس عنوان خدمة Python
+
+    if ($response->failed()) {
+        return back()->with('error', 'تعذر تحليل الصورة');
+    }
+
+    $data = $response->json();
+
+    // $data['rooms'] -> مصفوفة الغرف
+    // $data['final_image_base64'] -> صورة النتيجة النهائية
+
+    return view('result', [
+        'rooms' => $data['rooms'],
+        'finalImage' => $data['final_image_base64']
+    ]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+واجهة العرض 
+
+
+
+@if(!empty($finalImage))
+    <img src="data:image/png;base64,{{ $finalImage }}" style="max-width:100%;">
+@endif
+
+<h3>الغرف المكتشفة:</h3>
+@foreach($rooms as $room)
+    <h4>غرفة {{ $room['id'] }} ({{ $room['num_corners'] }} زوايا)</h4>
+    <ul>
+        @foreach($room['corners'] as $corner)
+            <li>({{ $corner['x'] }}, {{ $corner['y'] }})</li>
+        @endforeach
+    </ul>
+@endforeach

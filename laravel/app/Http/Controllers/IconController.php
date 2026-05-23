@@ -12,10 +12,13 @@ class IconController extends Controller
         $icons = Icon::select('id', 'name', 'icon')->get();
 
         $icons->transform(function ($icon) {
-            $icon->icon = asset('storage/' . str_replace('\\', '/', $icon->icon));
+            $icon->icon = asset( str_replace('\\', '/', $icon->icon));
             return $icon;
         });
 
         return response()->json(['icons' => $icons]);
     }
+
+  
+
 }

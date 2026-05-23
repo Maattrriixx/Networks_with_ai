@@ -1,9 +1,10 @@
 <?php
 
 use App\Models\Icon;
+use App\Models\Project;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $icon = Icon::all();
-    return view('welcome', compact('icon'));
+    $s= Project::all();
+    return view('welcome', compact('s'));
 });
