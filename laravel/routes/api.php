@@ -49,7 +49,7 @@ Route::get('/projects/{project}/status', function( Project $project) {
     return response()->json(['status' => $project->status]);
 })->middleware('auth:sanctum');
 
-
+Route::delete('/projects/{project}', [ProjectController::class, 'DeleteProject'])->middleware('auth:sanctum');
 
 ////////////////////////////room
 ////////////////////////////room

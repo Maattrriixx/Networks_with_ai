@@ -33,7 +33,7 @@ return new class extends Migration
                 'classroom',
                 'administrative office',
                 'secretary',
-                'café ',
+                'café',
                 'lobby',
                 'dr.office',
                 'library',

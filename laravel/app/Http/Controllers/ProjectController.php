@@ -61,7 +61,7 @@ class ProjectController extends Controller
 
             $response = Http::timeout(120)
                 ->attach('file', file_get_contents($imageFullPath), basename($imageFullPath))
-                ->post('http://127.0.0.1:8021/analyzer');
+                ->post('http://127.0.0.1:8021/analyze');
 
             if (!$response->successful()) {
                 throw new \Exception('Python API error: ' . $response->body());
@@ -115,5 +115,12 @@ class ProjectController extends Controller
             ->get();
 
         return response()->json($projects);
+    }
+    public function DeleteProject(Project $project){
+        if($project->user_id !==Auth::id()){
+            return response()->json(['error'=>'Unauthorized'],403);
+        }
+        $project->delete();
+        return response()->json(['message'=>'Project deleted successfully']);
     }
 }

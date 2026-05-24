@@ -10,7 +10,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # تشغيل السيرفر
-uvicorn api:app --host 0.0.0.0 --port 8000
+uvicorn api:app --host 0.0.0.0 --port 8021
 
 
 
