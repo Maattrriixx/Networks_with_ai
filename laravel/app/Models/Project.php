@@ -16,6 +16,7 @@ class Project extends Model
         'status',
         'num_rooms',
         'total_device',
+        'measure_of_draw',
     ];
 
     protected $casts = [

@@ -21,6 +21,7 @@ class StoreProject extends FormRequest
             'type' => 'required|in:university,bank,residential,commercial',
             'description' => 'nullable|string',
             'image' => 'required|image|mimes:jpg,png|max:20480',
+            'measure_of_draw' => 'required|in:1/200,1/100,1/50',
             
         ];
     }
@@ -38,7 +39,8 @@ class StoreProject extends FormRequest
             'image.image' => 'Image must be a valid image.',
             'image.mimes' => 'Image must be a file of type: jpg, png.',
             'image.max' => 'Image cannot exceed 20480 KB.',
-           
+            'measure_of_draw.required' => 'Measure of draw is required.',
+            'measure_of_draw.in' => 'Measure of draw must be: 1/200, 1/100, or 1/50.',
         ];
     }
 

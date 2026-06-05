@@ -41,7 +41,7 @@ Route::get('/Display_Icon',[IconController::class,'Display_Icon'])->middleware('
 Route::get('/Get_User_Projects', [ProjectController::class, 'GetUserProjects'])->middleware('auth:sanctum');
 Route::get('/Get_All_User_Projects', [ProjectController::class, 'GetAllUserProjects'])->middleware('auth:sanctum');
 
-
+Route::get('/projects/settings', [ProjectController::class, 'getProjectSettings'])->middleware('auth:sanctum');
 Route::post('/create_project',[ProjectController::class,'StoreProject'])->middleware('auth:sanctum');
 Route::post('/projects/{project}/analyze', [ProjectController::class, 'analyzeProject'])->middleware('auth:sanctum');
 Route::get('/projects', [ProjectController::class, 'GetUserProjects'])->middleware('auth:sanctum');

@@ -22,6 +22,10 @@ const ROOM_TYPES = [
     'meeting room',
     'wc',
 ];
+
+
+        
+
    public function getRooms(Project $project)
 {
     if ($project->user_id !== Auth::id()) {
@@ -53,4 +57,6 @@ public function updateType(Room $room, Request $request)
         'room'    => $room->type,
     ]);
 }
+
 }
+

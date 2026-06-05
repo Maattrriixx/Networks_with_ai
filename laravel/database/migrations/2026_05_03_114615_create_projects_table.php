@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('thumbnail')->nullable();
             $table->integer('total_device')->default(0);
             $table->enum('status', ['draft','saved', 'processing', 'completed', 'error'])->default('draft');
+            $table->enum('measure_of_draw',['1/200','1/100','1/50'])->default('1/100');
             $table->timestamps();
         });
     }

@@ -15,29 +15,48 @@ use Intervention\Image\ImageManager;
 
 class ProjectController extends Controller
 {
-    public function StoreProject(StoreProject $req)
-    {
-        $userid = Auth::user()->id;
-        $validated = $req->validated();
-        $image = $req->file('image');
-        if (!$req->hasFile('image')) {
-            return response()->json(['error' => 'Image is required'], 422);
-        }
-        $path = $image->store('image', 'public');
-        $validated['image'] = 'storage/' . $path;
-        $validated['user_id'] = $userid;
-
-        $manger = new ImageManager(new Driver());
-        $thumb = $manger->read($image)->resize(200, 200);
-        $thumbName = 'thumb' . time() . '.jpg';
-        $thumbPath = 'thumbnail/' . $thumbName;
-        Storage::disk('public')->put($thumbPath, (string) $thumb->toJpeg(80));
-        $validated['thumbnail'] = 'storage/' . $thumbPath;
-
-        $project = Project::create($validated);
-        
-        return response()->json(['message' => 'Project created successfully', 'project' => $project], 201);
+    public function getProjectSettings()
+{
+    return response()->json([
+        'available_measures' => ['1/50', '1/100', '1/200'],
+        'project_types'      => ['university', 'bank', 'residential', 'commercial']
+    ], 200);
+}
+   public function StoreProject(StoreProject $req)
+{
+    // البيانات القادمة هنا أصبحت مفلترة ومضمونة ومحتوية على measure_of_draw
+    $validated = $req->validated(); 
+    
+    $userid = Auth::id(); // طريقة أسرع وأقصر لجلب الـ ID
+    
+    // التحقق من الصورة (تم تأمينه أيضاً في الـ Request لكن زيادة تأكيد)
+    if (!$req->hasFile('image')) {
+        return response()->json(['error' => 'Image is required'], 422);
     }
+    
+    $image = $req->file('image');
+    $path = $image->store('image', 'public');
+    
+    $validated['image'] = 'storage/' . $path;
+    $validated['user_id'] = $userid;
+
+    // معالجة الصورة المصغرة (Thumbnail)
+    $manger = new ImageManager(new Driver());
+    $thumb = $manger->read($image)->resize(200, 200);
+    $thumbName = 'thumb' . time() . '.jpg';
+    $thumbPath = 'thumbnail/' . $thumbName;
+    Storage::disk('public')->put($thumbPath, (string) $thumb->toJpeg(80));
+    
+    $validated['thumbnail'] = 'storage/' . $thumbPath;
+
+    // سيتم حفظ المشروع ومعه مقياس الرسم تلقائياً لأننا أضفناه للـ fillable والـ validation
+    $project = Project::create($validated);
+    
+    return response()->json([
+        'message' => 'Project created successfully', 
+        'project' => $project
+    ], 201);
+}
 
 
     public function analyzeProject(Project $project)
@@ -59,6 +78,7 @@ class ProjectController extends Controller
         if (!file_exists($imageFullPath)) {
             throw new \Exception('Image file not found');
         }
+        
 
         // 4. إرسال الصورة إلى سيرفر البايثون (FastAPI / Flask)
         $response = Http::timeout(120)
