@@ -2,29 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
-    protected $fillable = [
-        'project_id',
-        'confidence',
-        'x1', 'y1', 'x2', 'y2',
-        'center_x', 'center_y',
-        'type',
-    ];
+    use HasFactory;
 
+    // تحديث الـ fillable حسب الأعمدة الجديدة في الـ Migration
+    protected $fillable = ['project_id', 'confidence', 'center_x', 'center_y', 'type'];
+
+    // العلاقة الجديدة: الغرفة لها عدة زوايا
+    public function corners()
+    {
+        // تم إضافة orderBy لكي يجلب لك لارافيل الزوايا مرتبة تلقائياً للرسم
+        return $this->hasMany(RoomCorner::class)->orderBy('order_index', 'asc');
+    }
+
+    // الغرفة تنتمي لمشروع واحد
     public function project()
     {
         return $this->belongsTo(Project::class);
-    }
-
-   
-    public static function calculateCenter($x1, $y1, $x2, $y2)
-    {
-        return [
-            'x' => ($x1 + $x2) / 2,
-            'y' => ($y1 + $y2) / 2
-        ];
     }
 }

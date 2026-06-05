@@ -1,0 +1,47 @@
+
+Required libraries :
+fastapi
+uvicorn
+numpy
+scikit-learn
+
+
+public function fullAnalysis(Request $request)
+{
+    $request->validate(['image' => 'required|image|max:10240']);
+
+    // 1. استدعاء خدمة الكشف عن الغرف
+    $detectResponse = Http::attach(
+        'file',
+        file_get_contents($request->file('image')->getRealPath()),
+        $request->file('image')->getClientOriginalName()
+    )->post('http://localhost:8000/analyze');   // خدمة YOLO
+
+    if ($detectResponse->failed()) {
+        return back()->with('error', 'فشل كشف الغرف');
+    }
+
+    $roomsData = $detectResponse->json('rooms');
+    $finalImage = $detectResponse->json('final_image_base64');
+
+    // 2. استدعاء خدمة تخطيط الشبكة
+    $networkResponse = Http::post('http://localhost:8001/optimize', [
+        'rooms' => $roomsData,
+        'scale' => 0.05,   // أو اجعلها من إعدادات المستخدم
+        'eps'   => 150
+    ]);
+
+    if ($networkResponse->failed()) {
+        return back()->with('error', 'فشل إنشاء خطة الشبكة');
+    }
+
+    $networkPlan = $networkResponse->json();
+
+    // عرض النتيجة في واجهة
+    return view('full-result', [
+        'finalImage'    => $finalImage,
+        'rooms'         => $roomsData,
+        'devices'       => $networkPlan['devices'],
+        'connections'   => $networkPlan['connections']
+    ]);
+}

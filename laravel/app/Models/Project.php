@@ -14,6 +14,8 @@ class Project extends Model
         'image',
         'thumbnail',
         'status',
+        'num_rooms',
+        'total_device',
     ];
 
     protected $casts = [

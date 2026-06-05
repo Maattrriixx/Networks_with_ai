@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('name');
             $table->enum('type', ['university', 'bank', 'residential', 'commercial'])->default('university');
             $table->text('description')->nullable();
+            $table->integer('num_rooms')->default(0);
             $table->string('image');
             $table->string('thumbnail')->nullable();
+            $table->integer('total_device')->default(0);
             $table->enum('status', ['draft','saved', 'processing', 'completed', 'error'])->default('draft');
             $table->timestamps();
         });

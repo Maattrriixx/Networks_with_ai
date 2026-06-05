@@ -35,82 +35,103 @@ class ProjectController extends Controller
         $validated['thumbnail'] = 'storage/' . $thumbPath;
 
         $project = Project::create($validated);
-        $project->status = 'saved';
-        $project->save();
-
+        
         return response()->json(['message' => 'Project created successfully', 'project' => $project], 201);
     }
 
 
     public function analyzeProject(Project $project)
-    {
-        if ($project->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+{
+    // 1. التحقق من صلاحية المستخدم
+    if ($project->user_id !== Auth::id()) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    // 2. تحديث حالة المشروع إلى جاري المعالجة
+    $project->status = 'processing';
+    $project->save();
+
+    try {
+        // 3. تجهيز مسار الصورة الفعلي على السيرفر
+        $imagePath = str_replace('storage/', '', $project->image);
+        $imageFullPath = Storage::disk('public')->path($imagePath);
+
+        if (!file_exists($imageFullPath)) {
+            throw new \Exception('Image file not found');
         }
 
-        $project->status = 'processing';
-        $project->save();
+        // 4. إرسال الصورة إلى سيرفر البايثون (FastAPI / Flask)
+        $response = Http::timeout(120)
+            ->attach('file', file_get_contents($imageFullPath), basename($imageFullPath))
+            ->post('http://127.0.0.1:8021/analyze');
 
-        try {
-            $imagePath = str_replace('storage/', '', $project->image);
-            $imageFullPath = Storage::disk('public')->path($imagePath);
+        if (!$response->successful()) {
+            throw new \Exception('Python API error: ' . $response->body());
+        }
 
-            if (!file_exists($imageFullPath)) {
-                throw new \Exception('Image file not found');
-            }
+        $data = $response->json();
 
-            $response = Http::timeout(120)
-                ->attach('file', file_get_contents($imageFullPath), basename($imageFullPath))
-                ->post('http://127.0.0.1:8021/analyze');
+        // 5. حذف الغرف القديمة (سيقوم الـ cascade بحذف زواياها تلقائياً من قاعدة البيانات)
+        $project->rooms()->delete();
 
-            if (!$response->successful()) {
-                throw new \Exception('Python API error: ' . $response->body());
-            }
+        $savedRooms = [];
 
-            $data = $response->json();
+        // 6. البدء في معالجة الغرف القادمة من البايثون وحفظها
+        foreach ($data['rooms'] as $roomData) {
+            
+            // أولاً: إنشاء الغرفة وحفظ بياناتها الأساسية ومركزها
+            $room = Room::create([
+                'project_id' => $project->id,
+                'confidence' => 1.0, // يمكنك استبدالها بـ $roomData['confidence'] إذا كان الموديل يرسلها
+                'center_x'   => $roomData['center']['x'],
+                'center_y'   => $roomData['center']['y'],
+                'type'       => null, // يترك فارغاً ليقوم المستخدم بتحديده لاحقاً
+            ]);
 
-            $project->rooms()->delete();
-
-            $savedRooms = [];
-            foreach ($data['rooms'] as $room) {
-                $savedRooms[] = Room::create([
-                    'project_id' => $project->id,
-                    'confidence' => 1.0,
-                    'x1'         => $room['corners'][0]['x'],
-                    'y1'         => $room['corners'][0]['y'],
-                    'x2'         => $room['corners'][2]['x'],
-                    'y2'         => $room['corners'][2]['y'],
-                    'center_x'   => $room['center']['x'],
-                    'center_y'   => $room['center']['y'],
+            // ثانياً: حفظ الزوايا كاملة لهذه الغرفة بالترتيب الصحيح
+            foreach ($roomData['corners'] as $index => $cornerData) {
+                $room->corners()->create([
+                    'x'           => $cornerData['x'],
+                    'y'           => $cornerData['y'],
+                    'order_index' => $index // الترتيب المهم جداً للفرونت إند عند الرسم (0, 1, 2, 3)
                 ]);
             }
 
-            $project->status = 'completed';
-            $project->save();
-
-            return response()->json([
-                'message'            => 'Analysis completed',
-                'project'            => $project,
-                'num_rooms'          => $data['num_rooms'],
-                'rooms'              => $savedRooms,
-                'final_image_base64' => $data['final_image_base64'],
-            ]);
-        } catch (\Exception $e) {
-            $project->status = 'error';
-            $project->save();
-
-            return response()->json([
-                'message' => 'Analysis failed',
-                'project' => $project,
-                'error'   => $e->getMessage(),
-            ], 500);
+            // شحن الغرفة مع علاقة زواياها المرتّبة لتضمينها في الـ Response النهائي
+            $savedRooms[] = $room->load('corners');
         }
+
+        // 7. تحديث بيانات المشروع وحالته إلى مكتمل بنجاح
+        $project->num_rooms = count($savedRooms);
+        $project->status = 'completed'; 
+        $project->save();
+
+        // 8. إرجاع الرد النهائي بنجاح ومعه مصفوفة الغرف الجديدة بداخلها زواياها
+        return response()->json([
+            'message'            => 'Analysis completed',
+            'project'            => $project,
+            'num_rooms'          => $data['num_rooms'],
+            'rooms'              => $savedRooms,
+            'final_image_base64' => $data['final_image_base64'],
+        ]);
+
+    } catch (\Exception $e) {
+        // 9. في حال حدوث أي خطأ، يتم تحويل حالة المشروع إلى error
+        $project->status = 'error';
+        $project->save();
+
+        return response()->json([
+            'message' => 'Analysis failed',
+            'project' => $project,
+            'error'   => $e->getMessage(),
+        ], 500);
     }
+}
 
 
     public function GetUserProjects()
     {
-        $projects = Project::where('user_id', Auth::id())
+        $projects = Project::where('user_id',Auth::id())
             ->select('id', 'name', 'type', 'thumbnail')
             ->get();
 
