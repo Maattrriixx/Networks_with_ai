@@ -34,5 +34,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'network_api' => [
+        'url' => env('NETWORK_API_URL', 'http://127.0.0.1:8022'),
+    ],
 
 ];

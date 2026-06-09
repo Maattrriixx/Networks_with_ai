@@ -27,7 +27,7 @@ return new class extends Migration
                 'laboratories',
                 'classroom',
                 'administrative office',
-                'secretary',
+                'server room',
                 'café',
                 'lobby',
                 'dr.office',

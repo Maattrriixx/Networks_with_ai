@@ -13,6 +13,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Facades\Image;
 use Intervention\Image\ImageManager;
 
+
 class ProjectController extends Controller
 {
     public function getProjectSettings()
@@ -163,5 +164,29 @@ class ProjectController extends Controller
         }
         $project->delete();
         return response()->json(['message'=>'Project deleted successfully']);
+    }
+
+
+     public function getProjectTopology($projectId)
+    {
+        // جلب المشروع مع الغرف والأجهزة والأسلاك في استعلام واحد متكامل
+        $project = Project::with(['rooms', 'devices', 'connections'])->findOrFail($projectId);
+
+        // إرجاع البيانات كاملة للفرونت إند
+        return response()->json([
+            'success' => true,
+            'message' => 'تم جلب بيانات المخطط الهيكلي للمشروع بنجاح.',
+            'project' => [
+                'id'               => $project->id,
+                'name'             => $project->name,
+                'status'           => $project->status,
+                'total_device'     => $project->total_device,
+                'measure_of_draw'  => $project->measure_of_draw,
+                'metadata'         => $project->network_metadata, // الإحصائيات التي حفظناها كـ JSON
+                'rooms'            => $project->rooms,            // مصفوفة الغرف ليرسم الجدران
+                'devices'          => $project->devices,          // مصفوفة الأجهزة مع الـ x و y والـ room_id
+                'connections'      => $project->connections,      // مصفوفة الأسلاك (من وين لـ وين)
+            ]
+        ], 200);
     }
 }

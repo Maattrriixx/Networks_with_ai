@@ -24,4 +24,8 @@ class Room extends Model
     {
         return $this->belongsTo(Project::class);
     }
+    public function devices()
+{
+    return $this->hasMany(Device::class);
+}
 }
