@@ -13,19 +13,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
             $table->string('device_code', 50)->unique(); // معرف الجهاز في النظام الشبكي
-            
+
             // تحديث الـ enum لتشمل كافة الأجهزة المولدة من سكريبت البايثون
             $table->enum('type', [
-                'access_point', 
-                'camera', 
-                'switch', 
-                'router', 
+                'camera',
+                'switch',
+                'router',
                 'firewall',
                 'patch_panel',
                 'ups',
                 'server'
             ]);
-            
+
             $table->integer('cluster_id')->nullable(); // رقم المجموعة التي يخدمها
             $table->float('x')->nullable(); // الإحداثي X
             $table->float('y')->nullable(); // الإحداثي Y
@@ -34,7 +33,7 @@ return new class extends Migration
             $table->string('status')->default('planned'); // planned, installed, active, faulty
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             // Indexes لتحسين سرعة الاستعلامات
             $table->index(['project_id', 'type']);
             $table->index(['project_id', 'cluster_id']);
