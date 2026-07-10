@@ -15,16 +15,18 @@ return new class extends Migration
             $table->string('device_code', 50)->unique(); // معرف الجهاز في النظام الشبكي
 
             // تحديث الـ enum لتشمل كافة الأجهزة المولدة من سكريبت البايثون
-            $table->enum('type', [
+           $table->enum('type', [
                 'camera',
                 'switch',
                 'router',
                 'firewall',
                 'patch_panel',
                 'ups',
-                'server'
+                'server',
+                'data_outlet',
+                'access_point'
             ]);
-
+            $table->integer('quantity')->default(1);
             $table->integer('cluster_id')->nullable(); // رقم المجموعة التي يخدمها
             $table->float('x')->nullable(); // الإحداثي X
             $table->float('y')->nullable(); // الإحداثي Y

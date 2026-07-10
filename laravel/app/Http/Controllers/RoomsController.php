@@ -15,6 +15,7 @@ class RoomsController extends Controller
         'classroom',
         'administrative office',
         'secretary',
+        'server room',
         'café',
         'lobby',
         'dr.office',
